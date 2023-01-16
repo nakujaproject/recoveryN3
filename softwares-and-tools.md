@@ -1,5 +1,5 @@
 ## Necessary softwares and tools
-Please ensure you ave the following softwares installed on your machine:   
+Please ensure you have the following softwares installed on your machine:   
 
 |     | Tool                              | Usage                          |
 |-----|-----------------------------------|--------------------------------|
