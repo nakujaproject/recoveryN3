@@ -5,9 +5,7 @@
 ### SPI mode is preferable since it’s less complex than SDIO.
 
 
-
 ![SDCard MOdule Image](src/image/moduleimage.png)
-
 
 
 ### The operating voltage of micro SD Cards is 3.3 V. Therefore, we cannot SD Card directly with 5V logic. But the module has an onboard ultra-low dropout regulator that converts voltages from 3.3V – 6V down to ~3.3V. There is also a Logic Level converter IC 74LVC125A on the module which converts the interface logic from 3.3V-5V to 3.3V.  The module uses a 5V or 3.3V power supply.
@@ -44,6 +42,7 @@
 ![SDCard MOdule Image](src/image/pinconnection.png)
 
 ### Time stamp ,the date and time , is requested using Network Time Protocol (NTP).
+
 
 ## Referrence 
 #### https://randomnerdtutorials.com/esp32-data-logging-temperature-to-microsd-card/
