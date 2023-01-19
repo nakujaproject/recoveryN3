@@ -1241,8 +1241,8 @@
   (symbol (lib_id "Connector:Conn_01x04_Female") (at 175.895 130.81 90) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 82159891-b8dc-4a83-81a3-4855ac694eb8)
-    (property "Reference" "J1" (id 0) (at 177.165 125.095 90))
-    (property "Value" "SSD1306" (id 1) (at 177.165 127.635 90))
+    (property "Reference" "J1" (id 0) (at 177.165 125.73 90))
+    (property "Value" "SSD136" (id 1) (at 177.165 128.27 90))
     (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" (id 2) (at 175.895 130.81 0)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -1645,7 +1645,7 @@
       (reference "D7") (unit 1) (value "LED") (footprint "LED_THT:LED_D3.0mm")
     )
     (path "/82159891-b8dc-4a83-81a3-4855ac694eb8"
-      (reference "J1") (unit 1) (value "SSD1306") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+      (reference "J1") (unit 1) (value "SSD136") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
     )
     (path "/9615cde7-e48b-4f74-a980-fd982304735c"
       (reference "R1") (unit 1) (value "1k") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
