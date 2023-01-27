@@ -9,7 +9,7 @@
  * Email: emwiti658@gmail.com
  */
 
- #define FIRING_PIN 5
+ #define FIRING_PIN 18
  #define BUZZER_PIN 4
  #define DELAY 3000 // 3 seconds
  #define BUZZER_DELAY 500
@@ -17,6 +17,8 @@
 void setup() {
   pinMode(FIRING_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
+  
+  digitalWrite(FIRING_PIN, LOW);
   Serial.begin(115200);
 
   // pull the MOSFET gate pin high after 3 seconds
