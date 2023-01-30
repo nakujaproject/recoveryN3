@@ -47,3 +47,11 @@
 ## Referrence 
 #### https://randomnerdtutorials.com/esp32-data-logging-temperature-to-microsd-card/
 #### https://iotdesignpro.com/projects/logging-temperature-and-humidity-data-on-sd-card-using-esp32
+
+
+### SD CARD isn't the most suitable method for data logging. Some of it's disadvantages include:
+
+### * Limited write cycles: SD cards have a limited number of write cycles, so one is logging data at a high frequency, the SD card may wear out more quickly. 
+### * It's susceptible to vibration which may result to unmounting mid flight.
+### * Slow write speeds: Write speed of SD card can be slow compared to other storage options.
+### * Power consumption: Using an SD card for data logging on an ESP32 may consume more power than other types of storage, such as flash memory.
