@@ -3,6 +3,7 @@
 #include "defs.h"
 
 QueueHandle_t countdown_timer_queue;
+TaskHandle_t send_commands_task_handle;
 
 typedef enum{
   ALL_OFF = 0,
@@ -29,7 +30,6 @@ void send_commands(void* parameter){
 
 void receive_commands(void* parameter){
   uint8_t received_command = 0; // this will hold the command that has been read fromthe queue
-  debugln("[+] Command received ");
 
   for (;;){
     if(xQueueReceive(countdown_timer_queue, &received_command, portMAX_DELAY) == pdTRUE){
@@ -67,18 +67,18 @@ void receive_commands(void* parameter){
           break;
         
         case FIRE:
-          debugln("[+] Firing successful");
-
           // do the actual firing by writing the MOSFET firing pin HIGH
           // remain high for some time and  go LOW
           digitalWrite(firing_pin, HIGH);
-          vTaskDelay(FIRING_PIN_HOLD_TIME / portTICK_PERIOD_MS);
+          delay(FIRING_PIN_HOLD_TIME);
           digitalWrite(firing_pin, LOW);
 
           // buzzer notification
           digitalWrite(buzzer_pin, HIGH);
-          vTaskDelay(500 / portTICK_PERIOD_MS);
+          delay(BUZZ_TIME);
           digitalWrite(buzzer_pin, LOW);
+
+          debugln("[+] Fired!");
 
           break;
         
@@ -94,6 +94,8 @@ void setup() {
   pinMode(green_led, OUTPUT);
   pinMode(red_led, OUTPUT);
   pinMode(orange_led, OUTPUT);
+  pinMode(firing_pin, OUTPUT);
+  pinMode(buzzer_pin, OUTPUT);
   Serial.begin(115200);
 
   debugln("[+]Creating queue...");
@@ -114,7 +116,7 @@ void setup() {
     "receive_commands",
     1024,
     NULL,
-    1,
+    2,
     NULL, 
     1
   );
@@ -124,8 +126,8 @@ void setup() {
     "send_commands",
     1024,
     NULL,
-    2,
-    NULL, 
+    1,
+    &send_commands_task_handle, 
     1
   );
 

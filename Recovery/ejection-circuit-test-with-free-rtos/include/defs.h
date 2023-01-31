@@ -17,14 +17,15 @@
 
 // pins used
 const int green_led = 5;
-const int red_led = 18;
+const int red_led = 19;
 const int orange_led = 21;
 const int buzzer_pin = 4;
 const int firing_pin = 18;
 
 
 // timing variables
-#define COUNTDOWN_TIMER 500
-#define FIRING_PIN_HOLD_TIME 1000
+#define COUNTDOWN_TIMER 800
+#define FIRING_PIN_HOLD_TIME 500
+#define BUZZ_TIME 500
 
 #endif
