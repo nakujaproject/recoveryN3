@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <TinyGPSPlus.h>
 
 // The TinyGPSPlus object
@@ -67,7 +68,6 @@ void loop() {
 }
 
 
-
 void updateSerial()
 
 {
@@ -91,4 +91,5 @@ void updateSerial()
   }
 
 }
+
 
