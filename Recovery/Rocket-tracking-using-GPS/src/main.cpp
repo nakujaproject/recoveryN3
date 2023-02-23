@@ -1,95 +1,129 @@
 #include <Arduino.h>
-#include <TinyGPSPlus.h>
 
-// The TinyGPSPlus object
+#include <TinyGPS++.h>
 
+static const uint32_t GPSBaud = 9600;
+
+// for ESP32
+#define RXD2 16
+#define TXD2 17
+
+#define SerialGPS Serial2
+
+
+// creating The TinyGPS++ object
 TinyGPSPlus gps;
 
-void setup() {
-
-  Serial.begin(9600);
-
-  Serial2.begin(9600);
-
-  delay(3000);
-
-}
-void displayInfo()
-
+String data; char data_;
+static void smartDelay(unsigned long ms)
 {
-  Serial.print(F("Location: "));
-
-  if (gps.location.isValid()){
-
-    Serial.print("Lat: ");
-
-    Serial2.print(gps.location.lat(), 6);
-
-    Serial.print(F(","));
-
-    Serial.print("Lng: ");
-
-    Serial2.print(gps.location.lng(), 6);
-
-    Serial.println();
-
-  }  
-
-  else
-
+  unsigned long start = millis();
+  do 
   {
-
-    Serial.print(F("INVALID"));
-
-  }
-
+    while (SerialGPS.available ()){
+      data_ = SerialGPS.read() ;
+  
+      #ifdef Test_GPS
+        Serial.print(data_);  
+      #endif
+      gps.encode(data_);      
+    } 
+  } while (millis() - start < ms);
 }
 
-void loop() {
 
-  //updateSerial();
+void setup()
+{
+  Serial.begin(9600);
+  SerialGPS.begin(9600, SERIAL_8N1, RXD2, TXD2, false);
+}
 
-  while (Serial2.available() > 0)
+void loop()
+{
+  
 
-    if (gps.encode(Serial2.read()))
+  Serial.print("Latitude" );
+  Serial.println(gps.location.lat(), 6);
+  Serial.print("Longitude: ");
+  Serial.println(gps.location.lng(), 6);
+  Serial.print("Meters: ");
+  Serial.println(gps.altitude.meters(), 2);
 
-      displayInfo();
+  
+  smartDelay(1000);
+
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
-
-  {
-
-    Serial.println(F("No GPS detected: check wiring."));
-
-    while (true);
-
-  }
-
+    Serial.println(F("No GPS data received: check wiring"));
 }
 
 
-void updateSerial()
-
+static void printFloat(float val, bool valid, int len, int prec)
 {
-
-  delay(500);
-
-  while (Serial2.available())
-
+  if (!valid)
   {
-
-    Serial.write(Serial2.read());//Forward what Serial received to Software Serial Port
-
+    while (len-- > 1)
+      Serial.print('*');
+    Serial.print(' ');
   }
-
-  while (Serial.available())
-
+  else
   {
-
-    Serial.write(Serial2.read());//Forward what Software Serial received to Serial Port
-
+    Serial.print(val, prec);
+    int vi = abs((int)val);
+    int flen = prec + (val < 0.0 ? 2 : 1); // . and -
+    flen += vi >= 1000 ? 4 : vi >= 100 ? 3 : vi >= 10 ? 2 : 1;
+    for (int i=flen; i<len; ++i)
+      Serial.print(' ');
   }
-
+  smartDelay(0);
 }
 
+static void printInt(unsigned long val, bool valid, int len)
+{
+  char sz[32] = "*****************";
+  if (valid)
+    sprintf(sz, "%ld", val);
+  sz[len] = 0;
+  for (int i=strlen(sz); i<len; ++i)
+    sz[i] = ' ';
+  if (len > 0) 
+    sz[len-1] = ' ';
+  Serial.print(sz);
+  smartDelay(0);
+}
 
+static void printDateTime(TinyGPSDate &d, TinyGPSTime &t)
+{
+  if (!d.isValid())
+  {
+    Serial.print(F("********** "));
+  }
+  else
+  {
+    char sz[32];
+    sprintf(sz, "%02d/%02d/%02d ", d.month(), d.day(), d.year());
+    Serial.print(sz);
+  }
+  
+  if (!t.isValid())
+  {
+    Serial.print(F("******** "));
+  }
+  else
+  {
+    char sz[32];
+    sprintf(sz, "%02d:%02d:%02d ", t.hour(), t.minute(), t.second());
+    Serial.print(sz);
+  }
+
+  printInt(d.age(), d.isValid(), 5);
+  smartDelay(0);
+}
+
+static void printStr(const char *str, int len)
+{
+  int slen = strlen(str);
+  for (int i=0; i<len; ++i)
+    Serial.print(i<slen ? str[i] : ' ');
+  smartDelay(0);
+}
