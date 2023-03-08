@@ -22,10 +22,9 @@ const int orange_led = 21;
 const int buzzer_pin = 4;
 const int firing_pin = 18;
 
-
 // timing variables
 #define COUNTDOWN_TIMER 800
-#define FIRING_PIN_HOLD_TIME 500
+#define FIRING_PIN_HOLD_TIME 5000
 #define BUZZ_TIME 500
 
 #endif
