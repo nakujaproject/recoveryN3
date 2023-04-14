@@ -14,3 +14,5 @@
 #define debugf(x, y)
 
 #endif
+
+#define CALLIBRATION_FACTOR 100

@@ -8,6 +8,8 @@
 const int load_cell_dt = 25;
 const int load_cell_sck = 26;
 
+int real_average_reading, raw_average_reading;
+
 /* Load cell functions */
 HX711 load_cell;
 
@@ -49,55 +51,47 @@ void callibrate_load_cell(){
 }
 /* End of load cell functions */
 
+int get_raw_readings(){
+  /* get raw readings */
+  debugln("[+]Before setting up the scale");
 
-  Serial.println("Initializing the scale");
+  load_cell.read();
 
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  /* get average of 20 readings from the ADC */
+  raw_average_reading = load_cell.read_average(20);
 
-  Serial.println("Before setting up the scale:");
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());      // print a raw reading from the ADC
+  /* reset cell to zero */
+  
+  return raw_average_reading;
+}
 
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));   // print the average of 20 readings from the ADC
+int get_real_reading(){
+  /* get real readings from the load cell */
+  load_cell.set_scale(CALLIBRATION_FACTOR);
+  load_cell.tare(); // reset the scale to 0
 
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight (not set yet)
+  real_average_reading = load_cell.read_average(20);
 
-  Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);  // print the average of 5 readings from the ADC minus tare weight (not set) divided
-            // by the SCALE parameter (not set yet)
-            
-  scale.set_scale(INSERT YOUR CALIBRATION FACTOR);
-  //scale.set_scale(-471.497);                      // this value is obtained by calibrating the scale with known weights; see the README for details
-  scale.tare();               // reset the scale to 0
+  return real_average_reading;
+}
 
-  Serial.println("After setting up the scale:");
-
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());                 // print a raw reading from the ADC
-
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));       // print the average of 20 readings from the ADC
-
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));   // print the average of 5 readings from the ADC minus the tare weight, set with tare()
-
-  Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);        // print the average of 5 readings from the ADC minus tare weight, divided
-            // by the SCALE parameter set with set_scale
-
-  Serial.println("Readings:");
-
-
+void transmit_readings(){
+  /* transmit readings over wifi*/
+}
 
 void setup() {
   Serial.begin(115200);
   // rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
   setup_load_cell();
+  callibrate_load_cell();
 }
 
 void loop() {
-  callibrate_load_cell();
+  debugln(get_raw_readings);
+
+  /* read  load cell */
+
+  /* transmit to PC */
+
   
 }
