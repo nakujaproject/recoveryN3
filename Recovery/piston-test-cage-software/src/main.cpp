@@ -172,6 +172,8 @@ void setup() {
     request->send_P(200, "text/plain", dummy_force.c_str(), processor);
   });
 
+  server.begin();
+
 }
 
 void loop() {
@@ -185,5 +187,4 @@ void loop() {
   ws.cleanupClients();
   digitalWrite(led_pin, led_state);
 
-  
 }

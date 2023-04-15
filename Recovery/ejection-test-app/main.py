@@ -12,10 +12,9 @@ from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from random import randint
 import websocket
+import csv
 
-HOST = "ws:/192.168.1.1/force"
-
-
+# HOST = "ws://192.168.172.93"
 
 class App:
     def __init__(self,parent):
@@ -265,14 +264,12 @@ class App:
         '''
         connect to server
         '''
-
-        connection_status = False
         ws = websocket.WebSocket()
+        
+        ws.connect("ws://192.168.172.93")
+        resp = ws.recv()
 
-        if ws.connect(HOST):
-            connection_status = True
-
-        print(connection_status)
+        print(resp)
 
     def save_to_file(self):
         ''' 
@@ -282,6 +279,10 @@ class App:
         # listen for url
         # get incoming value
         # save value to CSV (value, timestamp)
+
+        with open("piston-force.csv", newline='') as csv_file:
+            spam_writer = csv.writer(csv_file, delimiter=' ')
+            spam_writer.writerow([randint(12, 20), datetime.now()])
 
 
 def run_app():

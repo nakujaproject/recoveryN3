@@ -18,4 +18,4 @@
 #define CALLIBRATION_FACTOR 100
 
 const char* SSID = "Eduh";
-const char* PASSWORD = "password2"
+const char* PASSWORD = "password2";
