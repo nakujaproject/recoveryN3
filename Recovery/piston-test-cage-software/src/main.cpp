@@ -1,10 +1,17 @@
 #include <Arduino.h>
-#include <esp_now.h>
-#include "soc/rtc.h"
 #include "defs.h"
 #include "HX711.h"
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
+#include <PubSubClient.h>
+#include <WiFi.h>
+
+/* mqtt setup */
+WiFiClient esp_client;
+PubSubClient client(esp_client);
+long last_msg = 0;
+char msg[50];
+int value = 0;
+const char* subscribe_topic = "piston/activate";
+const char* publish_topic = "piston/force";
 
 /* load cell pins  */
 const int load_cell_dt = 25;
@@ -13,66 +20,8 @@ const int load_cell_sck = 26;
 int real_average_reading, raw_average_reading;
 
 bool led_state = 0;
-const int led_pin = 2;
+const int led_pin = 14;
 String dummy_force = "700";
-
-/* create async web server object on port 80*/
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-
-void notify_all_clients(){
-  ws.textAll(String(led_state));
-}
-
-void handle_web_socket_message(void *arg, uint8_t *data, size_t len){
-  AwsFrameInfo* info = (AwsFrameInfo*) arg;
-
-  if(info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT){
-    data[len] = 0;
-
-    if(strcmp((char*) data, "toggle") == 0){
-      led_state != led_state;
-      notify_all_clients;
-    }
-  }
-}
-
-void on_event(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type, void* arg, uint8_t* data, size_t len){
-  switch (type) {
-    case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      break;
-    case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      break;
-    case WS_EVT_DATA:
-      handle_web_socket_message(arg, data, len);
-      break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-      break;
-  }
-
-}
-
-void init_websocket(){
-  ws.onEvent(on_event);
-  server.addHandler(&ws);
-}
-
-String processor(const String& var){
-  debugln(var);
-
-  if(var == "STATE"){
-    if(led_state){
-      return "ON";
-    } else{
-      return "OFF";
-    }
-  }
-
-  return String();
-}
 
 void connect_to_wifi(){
   // Connect to Wi-Fi
@@ -149,15 +98,55 @@ void transmit_readings(){
   /* transmit readings over wifi*/
 }
 
+void callback(char* topic, byte* message, unsigned int length){
+  String message_temp;
+
+  for (int i = 0; i< length; i++){
+    message_temp += (char)message[i];
+  }
+
+  // attempt to write pin HIGH
+  if(String(topic) == subscribe_topic){
+    if(message_temp == "FIRE"){
+      debug("FIRE");
+      digitalWrite(led_pin, HIGH);
+
+    } else if(message_temp == "ABORT"){
+      debugln("ABORT");
+      digitalWrite(led_pin, LOW);
+    }
+  }
+}
+
+void reconnect(){
+  while (!client.connected()){
+    debugln("Attempting to reconnect");
+
+    if(client.connect("PISTON-MASTER")){
+      debugln("connected");
+
+      client.subscribe(subscribe_topic);
+    }else{
+      debug("failed, rc=");
+      debug(client.state());
+      debugln("Try again in 3 seconds");
+
+      delay(3000);
+    }
+  }
+  
+}
+
+
 void setup() {
   Serial.begin(115200);
 
   /* setup load cell */
-  setup_load_cell();
+  // setup_load_cell();
   // callibrate_load_cell();
 
   /* set callibration factor */
-  set_callibration_factor();
+  // set_callibration_factor();
 
   /* set up connection variables */
   connect_to_wifi();
@@ -165,26 +154,27 @@ void setup() {
   pinMode(led_pin, OUTPUT);
   digitalWrite(led_pin, LOW);
 
-  init_websocket();
-
-  /* route for root / page */
-  server.on("/force", HTTP_GET, [](AsyncWebServerRequest* request){
-    request->send_P(200, "text/plain", dummy_force.c_str(), processor);
-  });
-
-  server.begin();
+  client.setServer(MQTT_BROKER, MQTT_PORT);
+  client.setCallback(callback);
 
 }
 
-void loop() {
+void loop(){
 
-  raw_average_reading = get_raw_readings();
-  debug("Raw:"); debugln(raw_average_reading); debugln();
+  if(!client.connected()){
+    reconnect();
+  }
+  client.loop();
 
-  /* read  load cell */
+  // raw_average_reading = get_raw_readings();
+  // debug("Raw:"); debugln(raw_average_reading); debugln();
 
-  /* transmit to PC */
-  ws.cleanupClients();
-  digitalWrite(led_pin, led_state);
+  /* read real value from load cell */
+  int force = 89;
+
+  /* convert the value to char array */
+  char temp_value[8];
+  dtostrf(force, 1, 2, temp_value);
+  client.publish(publish_topic, temp_value);
 
 }

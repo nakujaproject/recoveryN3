@@ -19,3 +19,6 @@
 
 const char* SSID = "Eduh";
 const char* PASSWORD = "password2";
+
+const char* MQTT_BROKER = "192.168.1.115";
+uint16_t MQTT_PORT = 1883;

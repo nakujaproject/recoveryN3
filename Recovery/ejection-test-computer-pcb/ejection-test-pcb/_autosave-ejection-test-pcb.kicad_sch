@@ -1836,7 +1836,7 @@
   (symbol (lib_id "Connector:Micro_SD_Card_Det") (at 142.24 173.99 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid ab348d08-997e-4cc6-a582-90b9e2626bcc)
-    (property "Reference" "J?" (id 0) (at 142.875 152.4 0))
+    (property "Reference" "J4" (id 0) (at 142.875 152.4 0))
     (property "Value" "Micro_SD_Card_Det" (id 1) (at 142.875 154.94 0))
     (property "Footprint" "" (id 2) (at 194.31 156.21 0)
       (effects (font (size 1.27 1.27)) hide)
@@ -2019,7 +2019,7 @@
       (reference "J3") (unit 1) (value "NICHROME-TERMINAL") (footprint "TerminalBlock:TerminalBlock_bornier-2_P5.08mm")
     )
     (path "/ab348d08-997e-4cc6-a582-90b9e2626bcc"
-      (reference "J?") (unit 1) (value "Micro_SD_Card_Det") (footprint "")
+      (reference "J4") (unit 1) (value "Micro_SD_Card_Det") (footprint "")
     )
     (path "/5b7189bd-e7fc-4d66-b9af-d65b01750a9c"
       (reference "Q1") (unit 1) (value "IRLZ34N") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
