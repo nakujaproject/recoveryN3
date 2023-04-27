@@ -20,5 +20,14 @@
 const char* SSID = "Eduh";
 const char* PASSWORD = "password2";
 
-const char* MQTT_BROKER = "192.168.1.115";
+const char* MQTT_BROKER = "192.168.30.83";
 uint16_t MQTT_PORT = 1883;
+
+// pinouts
+const int buzzer = 4;
+const int nichrome = 25;
+const int led1 = 23;
+const int led2 = 22;
+const int led3 = 21;
+const int load_cell_dt = 27;
+const int load_cell_sck = 26;

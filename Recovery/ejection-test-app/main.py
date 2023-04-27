@@ -37,8 +37,10 @@ class App:
 
         self.logo = Frame(parent, bg="gray30")
         self.graph_tab = Frame(parent, padx=10, bg="gray40")
-        self.message_variable = StringVar()
-        self.message_entry = Entry(self.message_frame, font=("Arial", 15, "bold"), fg="darkgoldenrod1", bg="gray30", borderwidth=3, width=44, textvariable=self.message_variable)
+
+        self.status_variable = StringVar()
+        self.status_variable.set("STANDBY")
+        self.message_entry = Entry(self.message_frame, font=("Arial", 10, "bold"), fg="darkgoldenrod1", bg="gray30", borderwidth=3, width=64, textvariable=self.status_variable)
         self.message_entry.grid(row=0, column=0, ipadx=4, ipady=4, sticky='ew')
 
         # test data
@@ -63,14 +65,24 @@ class App:
         # mqtt client creation
         self.client = mqtt.Client()
         self.client.on_message = self.on_message
-        self.subscribe_topic = "piston/force"
-        self.publish_topic = "piston/activate"
+        self.subscribe_topic = "piston/force"   # receive data read from the load cell
+        self.publish_topic = "piston/activate"  # fire the controller
+        self.init_topic = "piston/initialized" # used to send pin high time to esp32 controller
 
         # set default appearance configurations
 
         self.fire_button_config = {
             "fg": "green2",
             "bg": "gray10",
+            "font": ("Arial", 17, "bold"),
+            "relief": RIDGE,
+            "padx": 5,
+            "pady": 4,
+        }
+
+        self.init_button_config = {
+            "fg": "darkorange1",
+            "bg": "gray80",
             "font": ("Arial", 17, "bold"),
             "relief": RIDGE,
             "padx": 5,
@@ -104,7 +116,7 @@ class App:
             "fg": "white"
         }
 
-        self.serial_button_config ={
+        self.serial_button_config = {
             "fg": "white",
             "bg": "steelblue",
             "font": ("Arial", 13, "bold"),
@@ -160,7 +172,7 @@ class App:
         logo_label = Label(self.logo, image=logo, bg="gray30", width=40, height=40)
         logo_label.image = logo
         logo_label.grid(row=0, column=0)
-        app_title = Label(self.logo, text="Piston Ejection Test Control", font=("arial", 13, "bold"), bg="gray30", fg="white")
+        app_title = Label(self.logo, text="Piston Parachute Ejection Master", font=("arial", 13, "bold"), bg="gray30", fg="white")
         app_title.grid(row=0, column=1)
 
         ports = self.get_serial_ports()
@@ -224,17 +236,17 @@ class App:
         self.mqtt_url = Entry(self.mqtt_frame, self.entry_config)
         self.mqtt_url.grid(row=0, column=2)
 
-        self.status_variable = StringVar()
-        self.status_variable.set("STANDBY")
-
         self.standby_button = Button(self.mqtt_frame, self.standby_button_config, text="CONNECT", command=self.connect_to_server)
         self.standby_button.grid(row=0, column=3, padx=40, pady=4)
 
+        self.init_button = Button(self.btns_frame, self.init_button_config, text="INIT", command=self.init)
+        self.init_button.grid(row=0, column=0, padx=40)
+
         self.fire_button = Button(self.btns_frame, self.fire_button_config, text="FIRE", command=self.send_fire_command)
-        self.fire_button.grid(row=0, column=4)
+        self.fire_button.grid(row=0, column=1, padx=40)
 
         self.abort_button = Button(self.btns_frame, self.abort_button_config, text="ABRT", command=self.send_abort_command)
-        self.abort_button.grid(row=0, column=5, padx=20, pady=4)
+        self.abort_button.grid(row=0, column=2, padx=20, pady=4)
 
         # heating time progress bar
         # self.progress_bar = Frame(self.parent)
@@ -324,6 +336,16 @@ class App:
 
     def save_parameters_to_file(self):
         '''this function saves the users input'''
+
+
+        # check for empty entries
+        if len(self.firing_time_entry.get()) == 0 :
+            self.show_message(1, "Empty entry", "Mass of powder required")
+            self.mass_of_crimson_used_entry.focus()
+        elif len(self.mass_of_crimson_used_entry.get()) == 0:
+            self.show_message(1, "Empty entry", "Pin high time required")
+            self.firing_time_entry.focus()
+
         curr_time = datetime.now().strftime("%S")
         
         com = self.port_select_combobox.get()
@@ -342,6 +364,8 @@ class App:
             parameters_file.write("Date of test: " + date_of_test + "\n")
             parameters_file.write("Time of test: " + time_of_test + "\n")
 
+        self.status_variable.set("Parameters saved to file!")
+
     def save_force_to_csv(self):
         '''
         save data received to internal memory
@@ -351,9 +375,9 @@ class App:
         # get incoming value
         # save value to CSV (value, timestamp)
 
-        with open("piston_force.csv", newline='') as csv_file:
+        with open("piston_force.csv", "a", newline='') as csv_file:
             spam_writer = csv.writer(csv_file, delimiter=' ')
-            spam_writer.writerow([randint(12, 20), datetime.now()])
+            spam_writer.writerow([self.piston_force, datetime.now()])
 
     def show_message(self, flag, title, message):
         """
@@ -393,11 +417,17 @@ class App:
         plt.ylabel("Force(N)")
         plt.xlabel("Time(Sec)")
 
+        self.save_force_to_csv()
 
     def connect_to_server(self):
         '''
         connect to mqtt server
         '''
+
+        # ensure url field is not empty
+        if len(self.mqtt_url.get()) == 0:
+            self.show_message(1, "Empty entry", "Broker URL is required!")
+            self.mqtt_url.focus()
 
         # get broker URL
         broker = self.mqtt_url.get()
@@ -419,17 +449,49 @@ class App:
         process any incoming data from MQTT server
         '''
 
-        self.piston_force = message.payload.decode("utf-8")
+        # if message.payload.decode("utf-8") == "Controller initialized":
+        #     self.status_variable.set(message.payload.decode("utf-8"))  # acknowledge signal from the piston computer
+        if message.payload.decode("utf-8") == "ACK":
+            print(message.payload.decode("utf-8"))
 
-        
+        self.piston_force = message.payload.decode("utf-8")  # force read from the load cell
+
+        # # save to csv
+        # self.save_force_to_csv()
+
+
+    def init(self):
+        '''
+        send the pin high time and return acknowledge
+        :return:
+        '''
+        nichrome_high_time = self.firing_time_entry.get()
+
+        self.client.publish(self.publish_topic, nichrome_high_time)
+
+        self.client.loop_start()
+
+        # self.acknowledge_subscribe()
+
+    def acknowledge_subscribe(self):
+        '''
+        receive acknowledge from the piston computer
+        :return:
+        '''
+        self.client.subscribe(self.init_topic)
+        self.client.loop_start()
+
+
     def send_fire_command(self):
         '''
         send command to fire the piston
+        send pin high time - this is the length to heat the nichrome wire
         :return:
         '''
-
+        nichrome_high_time = self.firing_time_entry.get()
         self.client.publish(self.publish_topic, "FIRE")
         self.client.loop_start()
+
 
     def send_abort_command(self):
         '''

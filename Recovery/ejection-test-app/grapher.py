@@ -1,7 +1,3 @@
 
-class Grapher:
-    def __init__(self):
-        pass
-
-    def update(self):
-        pass
+# this script graphs the force data after piston test for analysis
+import pandaa as pa

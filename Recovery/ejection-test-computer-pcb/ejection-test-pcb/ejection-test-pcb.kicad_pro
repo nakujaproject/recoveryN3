@@ -380,7 +380,6 @@
         "name": "POWER",
         "nets": [
           "11.1V",
-          "11V",
           "5V"
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",

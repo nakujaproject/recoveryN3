@@ -3,6 +3,7 @@
 #include "HX711.h"
 #include <PubSubClient.h>
 #include <WiFi.h>
+#include <string.h>
 
 /* mqtt setup */
 WiFiClient esp_client;
@@ -12,15 +13,15 @@ char msg[50];
 int value = 0;
 const char* subscribe_topic = "piston/activate";
 const char* publish_topic = "piston/force";
+const char* init_topic = "piston/initialized";
+void callback(char* topic, byte* message, unsigned int length);
 
-/* load cell pins  */
-const int load_cell_dt = 25;
-const int load_cell_sck = 26;
 
 int real_average_reading, raw_average_reading;
 
 bool led_state = 0;
 const int led_pin = 14;
+int nichrome_high_time = 0;
 String dummy_force = "700";
 
 void connect_to_wifi(){
@@ -98,6 +99,30 @@ void transmit_readings(){
   /* transmit readings over wifi*/
 }
 
+void buzz(){
+  digitalWrite(buzzer, HIGH);
+  delay(1000);
+  digitalWrite(buzzer, LOW);
+  delay(1000);
+}
+
+void countdown(){
+  digitalWrite(led1, HIGH);
+  delay(500);
+  digitalWrite(led1, LOW);
+  delay(500);
+
+  digitalWrite(led2, HIGH);
+  delay(500);
+  digitalWrite(led2, LOW);
+  delay(500);
+
+  digitalWrite(led3, HIGH);
+  delay(500);
+  digitalWrite(led3, LOW);
+  delay(500);
+}
+
 void callback(char* topic, byte* message, unsigned int length){
   String message_temp;
 
@@ -109,11 +134,44 @@ void callback(char* topic, byte* message, unsigned int length){
   if(String(topic) == subscribe_topic){
     if(message_temp == "FIRE"){
       debug("FIRE");
-      digitalWrite(led_pin, HIGH);
+
+      // buzz 2 seconds
+      buzz();
+
+      // countdown 3 seconds
+      // light up LED each second countdown
+      countdown();
+
+      // WRITE NICHROME HIGH
+      // digitalWrite(nichrome, HIGH);
+      digitalWrite(led2, HIGH); // test
+
+      // delay nichrome-delay-time seconds
+      delay(nichrome_high_time*1000); // this is where the explosion happens
+
+      // turn off nichrome wire
+      // digitalWrite(nichrome, LOW);
+      digitalWrite(led2, LOW); // test
+
+      // buzz 2 seconds
+      buzz();
 
     } else if(message_temp == "ABORT"){
       debugln("ABORT");
-      digitalWrite(led_pin, LOW);
+      buzz();
+    } else {
+      // we have received pin high time from PC
+
+      // set nichrome delay time to this value
+      nichrome_high_time = message_temp.toInt();
+
+      // buzz for 2 seconds 
+      buzz();
+    
+      // todo: send back an acknowledge signal to master
+
+      debugln(message_temp);
+
     }
   }
 }
@@ -151,11 +209,19 @@ void setup() {
   /* set up connection variables */
   connect_to_wifi();
 
-  pinMode(led_pin, OUTPUT);
-  digitalWrite(led_pin, LOW);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(load_cell_dt, INPUT);
+  pinMode(load_cell_sck, INPUT);
 
   client.setServer(MQTT_BROKER, MQTT_PORT);
   client.setCallback(callback);
+
+  // systems check
+  buzz();
+  countdown();
 
 }
 
@@ -175,6 +241,8 @@ void loop(){
   /* convert the value to char array */
   char temp_value[8];
   dtostrf(force, 1, 2, temp_value);
+
+  // send force value to PC client
   client.publish(publish_topic, temp_value);
 
 }

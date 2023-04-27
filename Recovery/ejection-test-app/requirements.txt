@@ -1,3 +1,4 @@
 future~=0.18.2
 pyserial~=3.5
 pillow~=8.4.0
+paho-mqtt

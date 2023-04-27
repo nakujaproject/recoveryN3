@@ -1,0 +1,6 @@
+COM PORT: 
+Pin high time: 
+Powder type: CRIMSON
+Powder mass: 
+Date of test: April 19, 2023
+Time of test: 03:28:01
