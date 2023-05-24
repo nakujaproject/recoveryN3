@@ -17,15 +17,15 @@
 
 #define CALLIBRATION_FACTOR 100
 
-const char* SSID = "Eduh";
-const char* PASSWORD = "password2";
+const char* SSID = "Galaxy";
+const char* PASSWORD = "luwa2131";
 
-const char* MQTT_BROKER = "192.168.30.83";
+const char* MQTT_BROKER = "192.168.208.40";
 uint16_t MQTT_PORT = 1883;
 
 // pinouts
 const int buzzer = 4;
-const int nichrome = 25;
+const int nichrome = 32;
 const int led1 = 23;
 const int led2 = 22;
 const int led3 = 21;
