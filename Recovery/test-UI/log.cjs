@@ -2,7 +2,7 @@ const mqtt = require('paho-mqtt');
 global.WebSocket = require('ws');
 let fs = require('fs');
 
-client = new mqtt.Client("192.168.208.40", 1885, "logger");
+client = new mqtt.Client("127.0.0.1", 1885, "logger");
  
 // set callback handlers
 client.onConnectionLost = onConnectionLost;

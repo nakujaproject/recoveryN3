@@ -16,9 +16,7 @@ const char* publish_topic = "piston/force";
 const char* init_topic = "piston/initialized";
 void callback(char* topic, byte* message, unsigned int length);
 bool ignited = false;
-
-
-int real_average_reading, raw_average_reading;
+int count = 0;
 
 bool led_state = 0;
 const int led_pin = 14;
@@ -79,9 +77,10 @@ void callback(char* topic, byte* message, unsigned int length){
       digitalWrite(nichrome, HIGH);
       // delay nichrome-delay-time seconds
       debugln("nichrome on");
+      ignited=false;
     } else if(message_temp == "ABORT"){
       debugln("ABORT");
-      buzz();
+      digitalWrite(nichrome, LOW);
     } else {
       // we have received pin high time from PC
 
@@ -146,17 +145,18 @@ void loop(){
 
   /* read real value from load cell */
   float reading = (load_cell.read()-153600)/float(10900);
+  // float reading = 90.01;
   if(reading>10 && !ignited){
       ignited=true;
       digitalWrite(nichrome, LOW);
       debugln("nichrome off");
   }
-  // float reading = 90.01;
-
   /* convert the value to char array */
-  char force[8];
-  dtostrf(reading, 1, 2, force);
+  char payload[8];
+  snprintf(payload,8,"%i,%f",count,reading);
 
-  // send force value to PC client
-  client.publish(publish_topic, force);
+  // send payload value to PC client
+  client.publish(publish_topic, payload);
+  // Serial.println(payload);
+  count+=1;
 }

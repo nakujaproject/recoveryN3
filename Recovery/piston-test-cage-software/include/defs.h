@@ -20,7 +20,7 @@
 const char* SSID = "Galaxy";
 const char* PASSWORD = "luwa2131";
 
-const char* MQTT_BROKER = "192.168.208.40";
+const char* MQTT_BROKER = "192.168.208.19";
 uint16_t MQTT_PORT = 1883;
 
 // pinouts

@@ -7,7 +7,7 @@ import setting from './assets/setting.svg';
 // socket.onopen = function(e) {
 //   alert("[open] Connection established");
 // };
-let client = new MQTT.Client("192.168.208.40", 1885, "dashboard");
+let client = new MQTT.Client("192.168.208.19", 1885, "dashboard");
 //called when client connects
 let onConnect = () => {
   console.log("connected");
@@ -47,7 +47,7 @@ let onConnectionLost = (responseObject) => {
 // called when a message arrives
 let onMessageArrived = (message) => {
   console.log("onMessageArrived:");
-  setForce(parseFloat(message.payloadString));
+  setForce(parseFloat(message.payloadString.split(',')[1]));
   force>max?setMax(force):null;
 }
 
